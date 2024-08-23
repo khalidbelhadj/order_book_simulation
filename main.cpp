@@ -248,7 +248,7 @@ struct OrderBook {
 int main() {
     OrderBook orderbook;
 
-    ifstream infile("orders.txt");
+    ifstream infile("./data/orders.txt");
     string line;
 
     int trades = 0;
