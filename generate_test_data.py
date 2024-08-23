@@ -1,7 +1,7 @@
 import random
 
 # params
-amount = 10_000_000
+amount = 10
 fair_price = random.randint(100, 1000)
 std_dev = 0.5
 
@@ -18,7 +18,7 @@ def generate_price(side):
 
 
 def main():
-    with open("orders.txt", "w+") as f:
+    with open("./data/orders.txt", "w+") as f:
         for _ in range(amount):
             side = int(random.random() < 0.5)
             price = generate_price(side)
