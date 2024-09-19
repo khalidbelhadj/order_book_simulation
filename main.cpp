@@ -252,7 +252,6 @@ int main() {
     string line;
 
     int trades = 0;
-    int counter = 0;
     while (getline(infile, line)) {
         istringstream iss(line);
         int flag;
@@ -268,10 +267,8 @@ int main() {
 
         auto i = orderbook.add(price, quantity, side);
         trades += i.trades.size();
-        counter += 1;
     }
 
-    // Close the file
     infile.close();
 
     cout << "Remaining orders: " << orderbook.orders.size() << endl;

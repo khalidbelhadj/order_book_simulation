@@ -1,4 +1,8 @@
 build/*
+!build/debug
+!build/release
+build/debug/*
+build/release/*
 data/*
 *.dSYM
 .DS_Store

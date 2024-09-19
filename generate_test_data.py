@@ -1,7 +1,6 @@
 import random
 
-# params
-amount = 10
+amount = 1_000_000
 fair_price = random.randint(100, 1000)
 std_dev = 0.5
 
