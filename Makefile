@@ -3,7 +3,7 @@ CC = clang++
 CFLAGS = -Wall -Wextra -pedantic -std=c++17
 DEBUG_FLAGS = $(CFLAGS) -g
 RELEASE_FLAGS = $(CFLAGS) -O3 -ffast-math
-VISUAL_FLAGS = $(CFLAGS) -I./lib/raylib/src/ -lraylib -L./lib/raylib/src/ -L/opt/homebrew/lib/ -lm -lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -DVISUAL
+VISUAL_FLAGS = $(CFLAGS) -I./lib/raylib/src/ -lraylib -L./lib/raylib/src/ -L/opt/homebrew/lib/ -lm -lglfw3 -framework Cocoa -framework OpenGL -framework IOKit -DVISUAL -g
 
 SRC_DIR = src
 BUILD_DIR = build
