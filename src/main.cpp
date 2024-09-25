@@ -4,6 +4,7 @@
 
 #include "order_book.h"
 
+#ifndef VISUAL
 int main() {
   OrderBook orderbook;
 
@@ -33,6 +34,25 @@ int main() {
   std::cout << "Remaining orders: " << orderbook.orders.size() << std::endl;
   std::cout << "Trades: " << trades << std::endl;
   std::cout << "Total: " << trades + orderbook.orders.size() << std::endl;
+  return 0;
+}
+
+#else
+#include "../lib/raylib/src/raylib.h"
+
+#define WIDTH 500
+#define HEIGHT 500
+
+int main() {
+  InitWindow(WIDTH, HEIGHT, "Order Book");
+
+  while (!WindowShouldClose()) {
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    EndDrawing();
+  }
 
   return 0;
 }
+#endif
