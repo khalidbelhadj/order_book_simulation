@@ -6,3 +6,5 @@ build/release/*
 data/*
 *.dSYM
 .DS_Store
+.cache
+imgui.ini

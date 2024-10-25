@@ -5,8 +5,6 @@
 
 #include "order_book.h"
 
-// #define VISUAL
-
 #ifndef VISUAL
 int main() {
   OrderBook orderbook;
@@ -45,13 +43,14 @@ int main() {
 #include <chrono>
 #include <thread>
 
-#include "raylib.h"
+#include "renderer.h"
 
 #define WIDTH 500
 #define HEIGHT 500
 
 int main() {
-  InitWindow(WIDTH, HEIGHT, "Order Book");
+  using namespace std::chrono;
+  renderer::init();
 
   OrderBook orderbook;
 
@@ -59,46 +58,33 @@ int main() {
   std::string line;
 
   int trades = 0;
-  while (!WindowShouldClose() && getline(infile, line)) {
-    std::istringstream iss(line);
-    int flag;
-    double price;
-    int quantity;
+  auto start_time = high_resolution_clock::now();
+  while (!renderer::should_close()) {
+    renderer::render_state(&orderbook);
+    auto current_time = high_resolution_clock::now();
 
-    if (!(iss >> flag >> price >> quantity)) {
-      std::cerr << "error" << line << std::endl;
+    if (duration_cast<seconds>(current_time - start_time).count() < 0.0001) {
       continue;
     }
 
-    Side side = (flag == 1) ? BID : ASK;
+    start_time = current_time;
 
-    BeginDrawing();
-    {
-      ClearBackground(WHITE);
+    if (getline(infile, line)) {
+      std::istringstream iss(line);
+      int flag;
+      double price;
+      int quantity;
 
-      for (size_t i = 0; i < std::min((size_t)5, orderbook.bid_prices.size());
-           ++i) {
-        DrawText(
-            TextFormat("Bid %d, Size %zu", orderbook.bid_prices.top().first,
-                       orderbook.bid_prices.top().second->size()),
-            10, 10 + 20 * i, 20, BLACK);
-        orderbook.bid_prices.pop();
+      if (!(iss >> flag >> price >> quantity)) {
+        std::cerr << "error" << line << std::endl;
+        continue;
       }
 
-      for (size_t i = 0; i < std::min((size_t)5, orderbook.ask_prices.size());
-           ++i) {
-        DrawText(
-            TextFormat("Ask %d, Size %zu", orderbook.ask_prices.top().first,
-                       orderbook.ask_prices.top().second->size()),
-            10, HEIGHT - (10 + 20 * i), 20, BLACK);
-        orderbook.ask_prices.pop();
-      }
+      Side side = (flag == 1) ? BID : ASK;
+
+      auto i = orderbook.add(price, quantity, side);
+      trades += i.trades.size();
     }
-    EndDrawing();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    auto i = orderbook.add(price, quantity, side);
-    trades += i.trades.size();
   }
 
   infile.close();

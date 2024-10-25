@@ -1,27 +1,18 @@
 import random
-
-amount = 1_000
-fair_price = random.randint(100, 1000)
-std_dev = 0.5
+import numpy as np
 
 
-def generate_price(side):
-    price = random.gauss(fair_price, std_dev)
+amount = 1_0000
 
-    if side == 1:
-        price -= random.uniform(0, 10)
-    else:
-        price += random.uniform(0, 10)
-
-    return round(price, 2)
+fair_price = 500
+prices = fair_price * np.random.exponential(0.2, amount)
+quantities = 100 * np.random.exponential(0.2, amount)
 
 
 def main():
     with open("./data/orders.txt", "w+") as f:
-        for _ in range(amount):
+        for price, quantity in zip(prices, quantities):
             side = int(random.random() < 0.5)
-            price = generate_price(side)
-            quantity = int(random.uniform(100, 200))
             f.write(f"{side} {price} {quantity}\n")
 
 

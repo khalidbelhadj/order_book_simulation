@@ -19,6 +19,7 @@ struct AskComparator {
 };
 
 #ifndef VISUAL
+// Optimised using a priority queue for performance
 using Bids =
     std::priority_queue<std::pair<size_t, Level*>,
                         std::vector<std::pair<size_t, Level*>>, BidComparator>;
@@ -27,27 +28,11 @@ using Asks =
                         std::vector<std::pair<size_t, Level*>>, AskComparator>;
 #else
 
-struct BidVisualQueue {
-  std::list<std::pair<size_t, Level*>> data;
-  BidComparator comparator;
-
-  void push(const std::pair<size_t, Level*> pair) {
-    data.push_back(pair);
-    std::sort(data.begin(), data.end(), comparator);
-  }
-
-  void pop() { data.pop_front(); }
-
-  std::pair<size_t, Level*> top() { return data.front(); }
-
-  bool empty() { return data.empty(); }
-
-  size_t size() { return data.size(); }
-};
-
-struct AskVisualQueue {
+// Use a less efficient structure for visualization purposes
+template <typename T>
+struct VisualQueue {
   std::vector<std::pair<size_t, Level*>> data;
-  AskComparator comparator;
+  T comparator;
 
   void push(const std::pair<size_t, Level*> pair) {
     data.push_back(pair);
@@ -56,15 +41,15 @@ struct AskVisualQueue {
 
   void pop() { data.pop_back(); }
 
-  std::pair<size_t, Level*> top() { return data.front(); }
+  std::pair<size_t, Level*> top() { return data.back(); }
 
   bool empty() { return data.empty(); }
 
   size_t size() { return data.size(); }
 };
 
-using Bids = BidVisualQueue;
-using Asks = AskVisualQueue;
+using Bids = VisualQueue<BidComparator>;
+using Asks = VisualQueue<AskComparator>;
 
 #endif
 struct OrderBook {

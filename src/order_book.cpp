@@ -1,5 +1,9 @@
 #include "order_book.h"
 
+#include <chrono>
+#include <iostream>
+#include <thread>
+
 bool BidComparator::operator()(const std::pair<size_t, Level *> &lhs,
                                const std::pair<size_t, Level *> rhs) const {
   return lhs.first < rhs.first;
@@ -12,33 +16,33 @@ bool AskComparator::operator()(const std::pair<size_t, Level *> &lhs,
 
 OrderConfirmation OrderBook::add(const size_t price, const size_t quantity,
                                  const Side side) {
-  if (side == BID && bid_levels.find(price) == bid_levels.end()) {
-    Level *level = new Level();
-    bid_levels[price] = level;
-    bid_prices.push({price, level});
-  }
-
-  if (side == ASK && ask_levels.find(price) == ask_levels.end()) {
-    Level *level = new Level();
-    ask_levels[price] = level;
-    ask_prices.push({price, level});
-  }
-
+  // Create order
   Order *order = order_pool.alloc();
-  *order = (Order){
-      .id = next_id,
-      .price = price,
-      .quantity = quantity,
-      .side = side,
-  };
-
+  *order = Order(next_id, price, quantity, side);
   orders[next_id] = order;
   ++next_id;
 
-  if (side == BID) bid_levels[price]->push_back(order);
-  if (side == ASK) ask_levels[price]->push_back(order);
+  // Add order to order book
+  if (side == BID) {
+    if (bid_levels.find(price) == bid_levels.end()) {
+      Level *level = new Level();
+      bid_levels[price] = level;
+      bid_prices.push({price, level});
+    }
+    bid_levels[price]->push_back(order);
+  }
 
-  return (OrderConfirmation){next_id, match()};
+  if (side == ASK) {
+    if (ask_levels.find(price) == ask_levels.end()) {
+      Level *level = new Level();
+      ask_levels[price] = level;
+      ask_prices.push({price, level});
+    }
+    ask_levels[price]->push_back(order);
+  }
+
+  // Try to match
+  return OrderConfirmation(next_id, match());
 }
 
 void OrderBook::cancel(size_t id) {
@@ -50,7 +54,6 @@ void OrderBook::cancel(size_t id) {
   Level *level =
       order->side == BID ? bid_levels[order->price] : ask_levels[order->price];
 
-  std::vector<Order *>::iterator it;
   level->erase(remove(level->begin(), level->end(), order), level->end());
 
   if (level->empty()) {
@@ -66,7 +69,7 @@ void OrderBook::cancel(size_t id) {
 OrderConfirmation OrderBook::modify(size_t id, size_t new_price,
                                     size_t new_quantity, Side new_side) {
   if (orders.find(id) == orders.end())
-    return (OrderConfirmation){id, std::vector<Trade>()};
+    return OrderConfirmation(id, std::vector<Trade>());
   cancel(id);
   return add(new_price, new_quantity, new_side);
 }
@@ -83,6 +86,7 @@ std::vector<Trade> OrderBook::match() {
       break;
     }
 
+    // TODO: Not sure if this is needed
     // Either being used up, or cancelled and modified
     if (bid.second->empty() || ask.second->empty()) {
       if (bid.second->empty()) {
@@ -107,10 +111,8 @@ std::vector<Trade> OrderBook::match() {
       top_bid->quantity -= trade_q;
       top_ask->quantity -= trade_q;
 
-      trades.push_back((Trade){.ask_id = top_ask->id,
-                               .bid_id = bid.first,
-                               .price = std::max(bid.first, ask.first),
-                               .quantity = trade_q});
+      trades.push_back(Trade(top_ask->id, bid.first,
+                             std::min(bid.first, ask.first), trade_q));
     }
 
     // Remove top bid if it's done
@@ -125,6 +127,20 @@ std::vector<Trade> OrderBook::match() {
       ask.second->erase(ask.second->begin());
       orders.erase(top_ask->id);
       order_pool.free(top_ask);
+    }
+
+    // Either being used up, or cancelled and modified
+    if (bid.second->empty() || ask.second->empty()) {
+      if (bid.second->empty()) {
+        bid_prices.pop();
+        bid_levels.erase(bid.first);
+        delete bid.second;
+      }
+      if (ask.second->empty()) {
+        ask_prices.pop();
+        ask_levels.erase(ask.first);
+        delete ask.second;
+      }
     }
   }
 
