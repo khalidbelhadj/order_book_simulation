@@ -10,11 +10,6 @@
       "label": "Build Debug",
       "type": "shell",
       "command": "make debug"
-    },
-    {
-      "label": "Build Visual",
-      "type": "shell",
-      "command": "make visual"
     }
   ]
 }

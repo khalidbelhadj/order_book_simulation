@@ -29,19 +29,6 @@
       "externalConsole": false,
       "MIMode": "lldb",
       "preLaunchTask": "Build Debug"
-    },
-    {
-      "name": "Visual",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/build/visual/main",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "Build Visual"
     }
   ]
 }
