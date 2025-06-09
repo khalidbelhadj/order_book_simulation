@@ -15,17 +15,24 @@ int main() {
 
     int trades = 0;
 
-    for (int i = 0; i < 1000; ++i) {
+    size_t order_count = 100000;
+
+    for (size_t i = 0; i < order_count; ++i) {
         Order order = generator.generate_order();
         OrderConfirmation confirmation = orderbook.add(order);
-        printf("Order ID: %zu, Price: %zu, Quantity: %zu, Side: %s\n",
+        printf("Order ID: %zu, Price: %f, Quantity: %f, Side: %s\n",
                confirmation.order_id, order.price, order.quantity,
                order.side == Side::Bid ? "Bid" : "Ask");
         trades += confirmation.trades.size();
     }
 
-    std::cout << "Remaining orders: " << orderbook.orders.size() << std::endl;
+    std::cout << "Remaining orders: "
+              << 100 * (float)orderbook.orders.size() / (float)order_count
+              << std::endl;
     std::cout << "Trades: " << trades << std::endl;
     std::cout << "Total: " << trades + orderbook.orders.size() << std::endl;
+    size_t margin = 0;
+    for (const auto &trade : orderbook.trades) margin += trade.margin;
+    std::cout << "Money made: " << margin << std::endl;
     return 0;
 }

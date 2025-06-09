@@ -9,19 +9,19 @@ enum class OrderType { Limit, Market };
 
 struct Order {
     size_t id;
-    size_t price;
-    size_t quantity;
+    double price;
+    double quantity;
     Side side;
     OrderType type = OrderType::Limit;
 
-    Order(size_t id, size_t price, size_t quantity, Side side, OrderType type)
+    Order(size_t id, double price, double quantity, Side side, OrderType type)
         : id(id), price(price), quantity(quantity), side(side), type(type) {}
 
-    static Order market(size_t id, Side side, size_t quantity) {
+    static Order market(size_t id, Side side, double quantity) {
         return Order(id, 0, quantity, side, OrderType::Market);
     }
 
-    static Order limit(size_t id, size_t price, size_t quantity, Side side) {
+    static Order limit(size_t id, double price, double quantity, Side side) {
         return Order(id, price, quantity, side, OrderType::Limit);
     }
 };
@@ -29,12 +29,12 @@ struct Order {
 struct Trade {
     size_t ask_id;
     size_t bid_id;
-    size_t price;
-    size_t quantity;
-    size_t margin;
+    double price;
+    double quantity;
+    double margin;
 
-    Trade(size_t ask_id, size_t bid_id, size_t price, size_t quantity,
-          size_t margin)
+    Trade(size_t ask_id, size_t bid_id, double price, double quantity,
+          double margin)
         : ask_id(ask_id),
           bid_id(bid_id),
           price(price),

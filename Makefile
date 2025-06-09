@@ -1,5 +1,5 @@
 # Base
-CXX = clang++
+CXX = g++
 CXXFLAGS = -Wall -Wextra -pedantic -std=c++17 -I/usr/local/include -I/opt/local/include -I/opt/homebrew/include -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
 LD_FLAGS =
 SRC_DIR = src

@@ -1,18 +1,21 @@
 #include "order_book.h"
 
 #include <cassert>
+#include <iostream>
 
-bool BidComparator::operator()(const std::pair<size_t, Level *> &lhs,
-                               const std::pair<size_t, Level *> &rhs) const {
+#include "order.h"
+
+bool BidComparator::operator()(const std::pair<double, Level *> &lhs,
+                               const std::pair<double, Level *> &rhs) const {
     return lhs.first < rhs.first;
 }
 
-bool AskComparator::operator()(const std::pair<size_t, Level *> &lhs,
-                               const std::pair<size_t, Level *> &rhs) const {
+bool AskComparator::operator()(const std::pair<double, Level *> &lhs,
+                               const std::pair<double, Level *> &rhs) const {
     return lhs.first > rhs.first;
 }
 
-OrderConfirmation OrderBook::create(const size_t price, const size_t quantity,
+OrderConfirmation OrderBook::create(const double price, const double quantity,
                                     const Side side) {
     // Create order
     Order *order = order_pool.alloc();
@@ -44,6 +47,10 @@ OrderConfirmation OrderBook::create(const size_t price, const size_t quantity,
     return OrderConfirmation(next_id, match());
 }
 
+OrderConfirmation OrderBook::add(Order order) {
+    return create(order.price, order.quantity, order.side);
+}
+
 void OrderBook::cancel(size_t id) {
     // Get the order from the map
     auto it = orders.find(id);
@@ -72,8 +79,8 @@ void OrderBook::cancel(size_t id) {
     orders.erase(id);
 }
 
-OrderConfirmation OrderBook::modify(size_t id, size_t new_price,
-                                    size_t new_quantity, Side new_side) {
+OrderConfirmation OrderBook::modify(size_t id, double new_price,
+                                    double new_quantity, Side new_side) {
     if (orders.find(id) == orders.end())
         return OrderConfirmation(id, std::vector<Trade>());
     cancel(id);
@@ -81,7 +88,7 @@ OrderConfirmation OrderBook::modify(size_t id, size_t new_price,
 }
 
 std::vector<Trade> OrderBook::match() {
-    std::vector<Trade> trades;
+    std::vector<Trade> new_trades;
 
     while (true) {
         // No more bids or asks, can't match any more
@@ -114,13 +121,25 @@ std::vector<Trade> OrderBook::match() {
         Order *top_bid = bid_level->front();
         Order *top_ask = ask_level->front();
 
-        size_t trade_q = std::min(top_bid->quantity, top_ask->quantity);
-        size_t trade_p = std::min(top_bid->price, top_ask->price);
-        size_t margin = top_ask->price - top_bid->price;
+        if (top_bid->price != bid_price) {
+            std::cout << "bid price not same: " << top_bid->price << ", "
+                      << bid_price << "\n";
+            exit(1);
+        }
+
+        if (top_ask->price != ask_price) {
+            std::cout << "ask price not same: " << top_ask->price << ", "
+                      << ask_price << "\n";
+            exit(1);
+        }
+
+        double trade_q = std::min(top_bid->quantity, top_ask->quantity);
+        double trade_p = std::min(top_bid->price, top_ask->price);
+        double margin = top_bid->price - top_ask->price;
 
         // We have a trade!
         if (trade_q != 0) {
-            trades.push_back(
+            new_trades.push_back(
                 Trade(top_ask->id, top_bid->id, trade_p, trade_q, margin));
 
             // Update quantities
@@ -143,5 +162,8 @@ std::vector<Trade> OrderBook::match() {
         }
     }
 
-    return trades;
+    // Add new trades to the order book
+    trades.insert(trades.end(), new_trades.begin(), new_trades.end());
+
+    return new_trades;
 }

@@ -7,10 +7,10 @@
 
 Order OrderGenerator::generate_order() {
     // Generate a random price around 100 with some noise
-    size_t price = static_cast<size_t>(100 + price_offset_dist(gen));
+    double price = static_cast<double>(100 + price_offset_dist(gen));
 
     // Generate a random quantity using an exponential distribution
-    size_t quantity = static_cast<size_t>(qty_dist(gen));
+    double quantity = static_cast<double>(qty_dist(gen));
 
     // Randomly choose side (Bid or Ask)
     Side side = (gen() % 2 == 0) ? Side::Bid : Side::Ask;
